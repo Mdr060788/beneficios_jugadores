@@ -1478,11 +1478,11 @@
                 text: z.map(row => row.map(v => `${v} Jugad.`)),
                 texttemplate: '%{text}',
                 textfont: {size: 14, color: 'white'},
-                hovertemplate: 'Tradicional: %{y}<br>Científico: %{x}<br>Jugadores: %{z}<extra></extra>'
+                hovertemplate: 'Original: %{y}<br>Nuevo: %{x}<br>Jugadores: %{z}<extra></extra>'
             };
             
             const layout = {
-                title: 'Matriz de Confusión: Método Original vs Científico',
+                title: 'Matriz de Confusión: Método Original vs Nuevo',
                 xaxis: { title: 'Método Nuevo' },
                 yaxis: { title: 'Método Original', autorange: 'reversed', ticksuffix: '  '},
                 margin: {l: 100, r: 40, t: 60, b: 60},
