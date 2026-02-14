@@ -1,7 +1,7 @@
 📊 De una intuición simple a un sistema basado en datos: 
 
 Rediseñando beneficios con análisis de datos...
-Para quienes no me conocen, desde los 6 años juego Pelota a Paleta. Como aficionado a esta disciplina, formo parte de la organización del 'Torneo Amistad', un circuito anual de 10 fechas que convoca jugadores de todo el país.
+Para quienes no me conocen, desde los 6 años juego Pelota a Paleta. Como aficionado a esta disciplina, formo parte de una organización que convoca jugadores de todo el país.
 Hace unos meses, nos enfrentamos una solicitud aparentemente simple: aplicar un esquema de beneficios para jugadores que viajen largas distancias a nuestros torneos.
 
 La lógica inicial era directa:
