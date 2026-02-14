@@ -370,12 +370,10 @@
                     <label for="search-localidad">Localidad</label>
                     <select id="search-localidad">
                         <option value="all">Todas las localidades</option>
-                        <!-- Se llena dinámicamente con JavaScript -->
                     </select>
                 </div>
 
                 <div class="filter-actions">
-                    <!-- <button class="btn btn-primary" onclick="aplicarFiltros()">Aplicar Filtros</button> -->
                     <button class="btn btn-secondary" style="width: 100%;" onclick="resetearFiltros()" >Resetear Filtros</button>
                 </div>
             
@@ -387,15 +385,15 @@
                 </div>
 
                 <div class="filter-group">
-                    <label>Km Totales Acum: <span id="km-range-label">Cargando...</span></label>
+                    <label>Km Prom.: <span id="km-range-label">Cargando...</span></label>
                     <div style="display: flex; flex-direction: column; gap: 8px;">
                         <div>
                             <label style="font-size: 0.85em; color: #94a3b8;">Mínimo</label>
-                            <input type="range" id="filter-km-min" step="50" style="width: 100%;">
+                            <input type="range" id="filter-km-min" step="10" style="width: 100%;">
                         </div>
                         <div>
                             <label style="font-size: 0.85em; color: #94a3b8;">Máximo</label>
-                            <input type="range" id="filter-km-max" step="50" style="width: 100%;">
+                            <input type="range" id="filter-km-max" step="10" style="width: 100%;">
                         </div>
                     </div>
                 </div>
@@ -412,7 +410,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon">🎁</div>
-                <div class="stat-label">Pases Libres Otorgados</div>
+                <div class="stat-label">Beneficios (Pases Otorgados)</div>
                 <div class="stat-value" id="stat-beneficios">-</div>
             </div>
             <div class="stat-card">
@@ -770,7 +768,7 @@
                         else d.beneficio = 0;
                     });
 
-                    // === AQUÍ CALCULAMOS LOS CAMPOS PARA EL CONTRASTE ===
+                    // === CALCULAMOS LOS CAMPOS PARA EL CONTRASTE ===
                     const UMBRAL_KM = 200;
 
                     // Calcular análisis comparativo PRIMERO
@@ -796,7 +794,7 @@
                     datosNoBeneficiados = datosOriginales.filter(d => d.beneficio === 0);
 
                     // Inicializar datosFiltrados con TODOS los beneficiados
-                    datosFiltrados = [...datosBeneficiados];  // ← Usar copia de datosBeneficiados
+                    datosFiltrados = [...datosBeneficiados];
 
                     // Primero inicializar filtros (configura los rangos)
                     inicializarFiltros();
@@ -939,9 +937,9 @@
             });
             
             // Configurar rango de km según datos reales
-            const kmValues = datosBeneficiados.map(d => d.km_totales);
-            const kmMin = Math.floor(Math.min(...kmValues) / 50) * 50;
-            const kmMax = Math.ceil(Math.max(...kmValues) / 50) * 50; 
+            const kmValues = datosBeneficiados.map(d => d.km_prom);
+            const kmMin = Math.floor(Math.min(...kmValues) / 10) * 10;
+            const kmMax = Math.ceil(Math.max(...kmValues) / 10) * 10; 
             
             document.getElementById('filter-km-min').min = kmMin;
             document.getElementById('filter-km-min').max = kmMax;
@@ -990,7 +988,7 @@
                 if (beneficio !== 'all' && d.beneficio !== parseInt(beneficio)) return false;
                 if (localidad !== 'all' && d.localidad !== localidad) return false;
                 if (d.cantidad_eventos < eventosMin) return false;
-                if (d.km_totales < kmMin || d.km_totales > kmMax) return false;
+                if (d.km_prom < kmMin || d.km_prom > kmMax) return false;
                 return true;
             });
             
@@ -1006,9 +1004,9 @@
             slider.value = 0;
             document.getElementById('eventos-value').textContent = 0;
 
-            const kmValues = datosBeneficiados.map(d => d.km_totales);
-            const kmMin = Math.floor(Math.min(...kmValues));
-            const kmMax = Math.ceil(Math.max(...kmValues));
+            const kmValues = datosBeneficiados.map(d => d.km_prom);
+            const kmMin = Math.floor(Math.min(...kmValues) / 10) * 10;
+            const kmMax = Math.ceil(Math.max(...kmValues) / 10) * 10;
 
             document.getElementById('filter-km-min').value = kmMin;
             document.getElementById('filter-km-max').value = kmMax;
@@ -1043,7 +1041,6 @@
             const eventos = datosFiltrados.reduce((sum, d) => sum + d.cantidad_eventos, 0);
             document.getElementById('stat-jugadores').textContent = jugadores;
             document.getElementById('stat-beneficios').textContent = beneficios;
-            //document.getElementById('stat-km').textContent = Math.round(km).toLocaleString();
             document.getElementById('stat-localidad').textContent = localidades;
             document.getElementById('stat-eventos').textContent = eventos;
         }
@@ -1093,7 +1090,7 @@
                     },
                     zoom: 6
                 },
-                margin: {r: 0, t: 50, l: 0, b: 0},  // Dar espacio arriba
+                margin: {r: 0, t: 50, l: 0, b: 0},
                 //height: 600,
                 paper_bgcolor: '#0f172a',
                 plot_bgcolor: '#0f172a',
@@ -1172,6 +1169,7 @@
                 customdata: top10,
                 hovertemplate: '<b>Jugador %{customdata.jugador_id}</b><br>' +
                             'Índice: %{x:.2f}<br>' +
+                            'Beneficio: %{customdata.beneficio}<br>' +
                             'Localidad: %{customdata.localidad}<br>' +
                             'Km Acum.: %{customdata.km_totales:.1f}<br>' +
                             'Km Prom.: %{customdata.km_prom:.1f}<br>' +
@@ -1342,9 +1340,7 @@
             Plotly.newPlot('grafico-dona', [trace], layout, {responsive: true});
         }
         
-        ///////////////////////////////////////////
         ///////////// Resumen final ///////////////
-        ///////////////////////////////////////////
         
         // Gráfico de tabla - Contraste beneficios
         function actualizarTabla() {

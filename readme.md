@@ -55,6 +55,12 @@ Criterio: percentil de esfuerzo integral
 📈 Resultado clave:
 El nuevo método identificó 4 beneficiarios adicionales (+17%) con un perfil de esfuerzo más equilibrado, mientras eliminó asignaciones cuestionables basadas únicamente en distancia promedio.
 
+Para finalizar, definimos escalas de beneficio según el percentil de esfuerzo: 
+≥97 → 3 pases
+≥95 → 2 pases
+≥92 → 1 pase.
+
+
 💡 Lecciones aprendidas
 
 1️⃣ Los datos no solo validan decisiones, las cuestionan.
