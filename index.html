@@ -387,19 +387,18 @@
                 </div>
 
                 <div class="filter-group">
-                    <label>Km Totales: <span id="km-range-label">0 - 10000</span></label>
+                    <label>Km Totales Acum: <span id="km-range-label">Cargando...</span></label>
                     <div style="display: flex; flex-direction: column; gap: 8px;">
                         <div>
                             <label style="font-size: 0.85em; color: #94a3b8;">Mínimo</label>
-                            <input type="range" id="filter-km-min" min="0" max="10000" value="0" step="50" style="width: 100%;">
+                            <input type="range" id="filter-km-min" step="50" style="width: 100%;">
                         </div>
                         <div>
                             <label style="font-size: 0.85em; color: #94a3b8;">Máximo</label>
-                            <input type="range" id="filter-km-max" min="0" max="10000" value="10000" step="50" style="width: 100%;">
+                            <input type="range" id="filter-km-max" step="50" style="width: 100%;">
                         </div>
                     </div>
                 </div>
-
             </div>
 
         </div>
@@ -578,34 +577,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Recomendaciones -->
-                <!--                 <div style="margin-bottom: 30px;">
-                    <h3 style="color: #60a5fa; font-size: 1.4em; margin-bottom: 15px;">📌 Recomendaciones</h3>
-                    
-                    <ol style="color: #cbd5e1; line-height: 2; padding-left: 25px;">
-                        <li>
-                            <strong style="color: #e2e8f0;">Implementar gradualmente:</strong> Comunicar claramente los cambios 
-                            a los jugadores afectados para mantener la confianza en el sistema.
-                        </li>
-                        <li>
-                            <strong style="color: #e2e8f0;">Monitorear impacto:</strong> Evaluar por períodos 
-                            si los pesos asignados (35-25-40) siguen siendo apropiados.
-                        </li>
-                        <li>
-                            <strong style="color: #e2e8f0;">Considerar excepciones:</strong> Mantener un proceso de revisión 
-                            manual para casos extraordinarios o situaciones especiales.
-                        </li>
-                        <li>
-                            <strong style="color: #e2e8f0;">Documentar decisiones:</strong> Registrar los jugadores que cambian 
-                            de categoría para análisis histórico y transparencia.
-                        </li>
-                        <li>
-                            <strong style="color: #e2e8f0;">Optimizar umbrales:</strong> Revisar si los percentiles (97%, 95%, 92%) 
-                            generan la distribución deseada de beneficios según presupuesto disponible.
-                        </li>
-                    </ol>
-                </div> -->
 
                 <!-- Conclusión Final -->
                 <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); padding: 25px; border-radius: 10px; border: 2px solid #60a5fa;">
@@ -801,12 +772,8 @@
 
                     // === AQUÍ CALCULAMOS LOS CAMPOS PARA EL CONTRASTE ===
                     const UMBRAL_KM = 200;
-                    
-                    // Separar beneficiados vs no beneficiados
-                    datosBeneficiados = datosOriginales.filter(d => d.beneficio > 0);
-                    datosNoBeneficiados = datosOriginales.filter(d => d.beneficio === 0);
-                    
-                    // Calcular análisis comparativo
+
+                    // Calcular análisis comparativo PRIMERO
                     datosOriginales.forEach(d => {
                         // Método original: solo por distancia
                         d.beneficio_original = d.km_prom > UMBRAL_KM ? 1 : 0;
@@ -818,16 +785,24 @@
                         } else if (d.beneficio_original === 0 && d.beneficio_nuevo === 0) {
                             d.categoria_beneficio = 'correcto_no_beneficiado';
                         } else if (d.beneficio_original === 1 && d.beneficio_nuevo === 0) {
-                            d.categoria_beneficio = 'sobre_beneficiado'; // Tenía y no merece
+                            d.categoria_beneficio = 'sobre_beneficiado';
                         } else if (d.beneficio_original === 0 && d.beneficio_nuevo === 1) {
-                            d.categoria_beneficio = 'sub_beneficiado'; // Merece y no tenía
+                            d.categoria_beneficio = 'sub_beneficiado';
                         }
                     });
 
-                    // Filtrar beneficiados
-                    datosFiltrados = datosOriginales.filter(d => d.beneficio > 0);
-                    actualizarDashboard();
+                    // Separar beneficiados vs no beneficiados
+                    datosBeneficiados = datosOriginales.filter(d => d.beneficio > 0);
+                    datosNoBeneficiados = datosOriginales.filter(d => d.beneficio === 0);
+
+                    // Inicializar datosFiltrados con TODOS los beneficiados
+                    datosFiltrados = [...datosBeneficiados];  // ← Usar copia de datosBeneficiados
+
+                    // Primero inicializar filtros (configura los rangos)
                     inicializarFiltros();
+
+                    // Luego actualizar dashboard
+                    actualizarDashboard();
 
                     console.log('%c=== VALIDACIÓN DE MÉTRICAS DE IMPACTO ===', 'color: #60a5fa; font-size: 18px; font-weight: bold');
 
@@ -943,14 +918,15 @@
         function actualizarRangoKm() {
             const min = document.getElementById('filter-km-min').value;
             const max = document.getElementById('filter-km-max').value;
+            console.log('Label actualizado:', min, '-', max);
             document.getElementById('km-range-label').textContent = `${min} - ${max} km`;
         }
-        
+
         // Poblar select de localidades
         function inicializarFiltros() {
-            // Poblar localidades
+            // Poblar localidades usando datosBeneficiados
             const select = document.getElementById('search-localidad');
-            const localidadesUnicas = [...new Set(datosFiltrados.map(d => d.localidad))]
+            const localidadesUnicas = [...new Set(datosBeneficiados.map(d => d.localidad))]
                 .filter(l => l)
                 .sort();
             
@@ -963,9 +939,9 @@
             });
             
             // Configurar rango de km según datos reales
-            const kmValues = datosFiltrados.map(d => d.km_totales);
-            const kmMin = Math.floor(Math.min(...kmValues));
-            const kmMax = Math.ceil(Math.max(...kmValues));
+            const kmValues = datosBeneficiados.map(d => d.km_totales);
+            const kmMin = Math.floor(Math.min(...kmValues) / 50) * 50;
+            const kmMax = Math.ceil(Math.max(...kmValues) / 50) * 50; 
             
             document.getElementById('filter-km-min').min = kmMin;
             document.getElementById('filter-km-min').max = kmMax;
@@ -975,11 +951,12 @@
             document.getElementById('filter-km-max').max = kmMax;
             document.getElementById('filter-km-max').value = kmMax;
 
-            // Configurar el slider de eventos
-            const maxEventos = Math.max(...datosFiltrados.map(d => d.cantidad_eventos));
+            // Configurar el slider de eventos usando datosBeneficiados
+            const maxEventos = Math.max(...datosBeneficiados.map(d => d.cantidad_eventos));
             const slider = document.getElementById('filter-eventos-range');
             slider.max = maxEventos;
             slider.value = 0;
+        
             actualizarRangoKm();
         }
 
@@ -1093,7 +1070,8 @@
                                    'Jugador: %{customdata.jugador_id}<br>' +
                                    'Índice: %{customdata.indice_esfuerzo:.2f}<br>' +
                                    'Eventos: %{customdata.cantidad_eventos}<br>' +
-                                   'Km: %{customdata.km_totales:.1f}<br>' +
+                                   'Km Acum.: %{customdata.km_totales:.1f}<br>' +
+                                   'Km Prom..: %{customdata.km_prom:.1f}<br>' +
                                    'Beneficio: %{customdata.beneficio}<br>' +
                                    '<extra></extra>',
                     name: `Beneficio ${b}`
@@ -1195,7 +1173,8 @@
                 hovertemplate: '<b>Jugador %{customdata.jugador_id}</b><br>' +
                             'Índice: %{x:.2f}<br>' +
                             'Localidad: %{customdata.localidad}<br>' +
-                            'Km: %{customdata.km_totales:.1f}<br>' +
+                            'Km Acum.: %{customdata.km_totales:.1f}<br>' +
+                            'Km Prom.: %{customdata.km_prom:.1f}<br>' +
                             '<extra></extra>',
                 width: 0.8
             };
